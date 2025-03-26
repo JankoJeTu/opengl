@@ -105,7 +105,7 @@ int main(void)
             0,1,2
         };*/
 
-        float vertices[] = {
+        float quadVertices[] = {
 
             -1.0f, -1.0f,
              1.0f, -1.0f,
@@ -113,38 +113,44 @@ int main(void)
              1.0f,  1.0f
         };
 
-        unsigned int indices[] = { 0, 1, 2, 1, 2, 3 };
+        //unsigned int indices[] = { 0, 1, 2, 1, 2, 3 };
+
+        std::vector<float> centers = { -0.5f, 0.5f,  0.5f, -0.5f,  0.0f, 0.0f }; // (x, y) for 3 circles
+        std::vector<float> radii = { 0.3f, 0.2f, 0.4f };
 
         /*vertex array*/
         VertexArray va;
 
         /*vertex buffer*/
-        VertexBuffer vb(vertices, 8 * sizeof(float));
+        VertexBuffer vb(quadVertices, 8 * sizeof(float));
+
+
+
+
 
         /*vertex buffer layout*/
         VertexBufferLayout layout;
         layout.Push<float>(2);
-        layout.Push<float>(2);
         va.AddBuffer(vb, layout);
 
         /*index buffer*/
-        IndexBuffer ib(indices, 6);
+        //IndexBuffer ib(indices, 6);
 
         /*projection matrix*/
-        glm::mat4 proj = glm::ortho(0.0f, xWindowSize * 1.0f, 0.0f, yWindowSize * 1.0f, -1.0f, 1.0f);
+        //glm::mat4 proj = glm::ortho(0.0f, xWindowSize * 1.0f, 0.0f, yWindowSize * 1.0f, -1.0f, 1.0f);
 
         /*shader*/
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
-        shader.SetUniform1f("u_Radius", 0.5f);
+        shader.SetUniform1f("u_Radius", 0.8f);
         shader.SetUniform2f("u_Center", 0.0f, 0.0f);
 
         /*unbind*/
         va.Unbind();
         shader.Unbind();
         vb.Unbind();
-        ib.Unbind();
+        //ib.Unbind();
 
         /*renderer*/
         Renderer renderer;
@@ -159,10 +165,10 @@ int main(void)
             renderer.Clear();
 
             shader.Bind();
-            shader.SetUniform4f("u_Color", red, 0.3f, 0.8f, 1.0f);
-            shader.SetUniformMat4f("u_MVP", proj);
+            shader.SetUniform4f("u_Color", 0.3f, 0.3f, 0.8f, 1.0f);
+            //shader.SetUniformMat4f("u_MVP", proj);
 
-            renderer.DrawTriangles(va, ib, shader);
+            //renderer.DrawTriangles(va, ib, shader);
 
             //unsigned int count = (positions.size()/4);
             //renderer.DrawLines(va, shader, count);
