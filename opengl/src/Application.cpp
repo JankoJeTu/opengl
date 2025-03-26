@@ -23,10 +23,9 @@
     return ((pixelPosition * 1.0f / windowSize) * 2.0f - 1.0f);
 }*/
 
-int xWindowSize = 960;
-int yWindowSize = 540;
+int xWindowSize = 800;
+int yWindowSize = 800;
 
-//const unsigned int gridSpacing = 20;
 
 /*std::vector<float> GenerateGridVertices(int& xWindowSize, int& yWindowSize, const unsigned int& gridSpacing) {
 
@@ -96,7 +95,7 @@ int main(void)
         
         //std::vector<float> positions = GenerateGridVertices(xWindowSize, yWindowSize, gridSpacing);
 
-        float positions[] = {
+        /*float positions[] = {
             100.0f,100.0f,0.0f,0.0f,
             200.0f,100.0f,0.0f,0.0f,
             200.0f,200.0f,0.0f,0.0f
@@ -104,13 +103,23 @@ int main(void)
 
         unsigned int indicies[] = {
             0,1,2
+        };*/
+
+        float vertices[] = {
+
+            -1.0f, -1.0f,
+             1.0f, -1.0f,
+            -1.0f,  1.0f,
+             1.0f,  1.0f
         };
+
+        unsigned int indices[] = { 0, 1, 2, 1, 2, 3 };
 
         /*vertex array*/
         VertexArray va;
 
         /*vertex buffer*/
-        VertexBuffer vb(positions, 12 * sizeof(float));
+        VertexBuffer vb(vertices, 8 * sizeof(float));
 
         /*vertex buffer layout*/
         VertexBufferLayout layout;
@@ -119,7 +128,7 @@ int main(void)
         va.AddBuffer(vb, layout);
 
         /*index buffer*/
-        IndexBuffer ib(indicies, 3);
+        IndexBuffer ib(indices, 6);
 
         /*projection matrix*/
         glm::mat4 proj = glm::ortho(0.0f, xWindowSize * 1.0f, 0.0f, yWindowSize * 1.0f, -1.0f, 1.0f);
@@ -128,6 +137,8 @@ int main(void)
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
         shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
+        shader.SetUniform1f("u_Radius", 0.5f);
+        shader.SetUniform2f("u_Center", 0.0f, 0.0f);
 
         /*unbind*/
         va.Unbind();
