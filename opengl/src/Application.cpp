@@ -18,48 +18,21 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-/*float NDC(int& windowSize, unsigned int& pixelPosition) {
-
-    return ((pixelPosition * 1.0f / windowSize) * 2.0f - 1.0f);
-}*/
 
 int xWindowSize = 800;
 int yWindowSize = 800;
 
+struct Circle {
 
-/*std::vector<float> GenerateGridVertices(int& xWindowSize, int& yWindowSize, const unsigned int& gridSpacing) {
+    float x, y;        // Position
+    float vx, vy;      // Velocity
+    float radius;      // Radius
+};
 
-    std::vector<float> vertices;
+std::vector<Circle> circles = {
 
-    // x axis
-    for (unsigned int i = gridSpacing; i < xWindowSize; i += gridSpacing) {
-
-        vertices.push_back(i * 1.0f);
-        vertices.push_back(0.0f);
-        vertices.push_back(0.0f);
-        vertices.push_back(0.0f);
-
-        vertices.push_back(i * 1.0f);
-        vertices.push_back(yWindowSize * 1.0f);
-        vertices.push_back(0.0f);
-        vertices.push_back(0.0f);
-    }
-
-    //y axis
-    for (unsigned int i = gridSpacing; i < yWindowSize; i += gridSpacing) {
-
-        vertices.push_back(0.0f);
-        vertices.push_back(i * 1.0f);
-        vertices.push_back(0.0f);
-        vertices.push_back(0.0f);
-
-        vertices.push_back(xWindowSize * 1.0f);
-        vertices.push_back(i * 1.0f);
-        vertices.push_back(0.0f);
-        vertices.push_back(0.0f);
-    }
-    return vertices;
-}*/
+    { 0.0f, 0.0f, 0.0f, 0.0f, 0.4f }   // Circle 3
+};
 
 int main(void)
 {
@@ -92,19 +65,6 @@ int main(void)
 
     /*scope*/
     {
-        
-        //std::vector<float> positions = GenerateGridVertices(xWindowSize, yWindowSize, gridSpacing);
-
-        /*float positions[] = {
-            100.0f,100.0f,0.0f,0.0f,
-            200.0f,100.0f,0.0f,0.0f,
-            200.0f,200.0f,0.0f,0.0f
-        };
-
-        unsigned int indicies[] = {
-            0,1,2
-        };*/
-
         float quadVertices[] = {
 
             -1.0f, -1.0f,
@@ -113,10 +73,11 @@ int main(void)
              1.0f,  1.0f
         };
 
-        //unsigned int indices[] = { 0, 1, 2, 1, 2, 3 };
+        unsigned int indices[] = { 0, 1, 2, 1, 2, 3 };
 
-        std::vector<float> centers = { -0.5f, 0.5f,  0.5f, -0.5f,  0.0f, 0.0f }; // (x, y) for 3 circles
-        std::vector<float> radii = { 0.3f, 0.2f, 0.4f };
+        /*blending*/
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         /*vertex array*/
         VertexArray va;
@@ -124,17 +85,13 @@ int main(void)
         /*vertex buffer*/
         VertexBuffer vb(quadVertices, 8 * sizeof(float));
 
-
-
-
-
         /*vertex buffer layout*/
         VertexBufferLayout layout;
         layout.Push<float>(2);
         va.AddBuffer(vb, layout);
 
         /*index buffer*/
-        //IndexBuffer ib(indices, 6);
+        IndexBuffer ib(indices, 6);
 
         /*projection matrix*/
         //glm::mat4 proj = glm::ortho(0.0f, xWindowSize * 1.0f, 0.0f, yWindowSize * 1.0f, -1.0f, 1.0f);
@@ -142,15 +99,16 @@ int main(void)
         /*shader*/
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
-        shader.SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
-        shader.SetUniform1f("u_Radius", 0.8f);
+        shader.SetUniform3f("u_Color", 0.2f, 0.3f, 0.8f);
+        shader.SetUniform1f("u_Radius", 0.2f);
         shader.SetUniform2f("u_Center", 0.0f, 0.0f);
+        shader.SetUniform1f("u_EdgeW", 0.005f);
 
         /*unbind*/
         va.Unbind();
         shader.Unbind();
         vb.Unbind();
-        //ib.Unbind();
+        ib.Unbind();
 
         /*renderer*/
         Renderer renderer;
@@ -165,13 +123,10 @@ int main(void)
             renderer.Clear();
 
             shader.Bind();
-            shader.SetUniform4f("u_Color", 0.3f, 0.3f, 0.8f, 1.0f);
+            shader.SetUniform3f("u_Color", 0.3f, 0.3f, 0.8f);
             //shader.SetUniformMat4f("u_MVP", proj);
 
-            //renderer.DrawTriangles(va, ib, shader);
-
-            //unsigned int count = (positions.size()/4);
-            //renderer.DrawLines(va, shader, count);
+            renderer.DrawTriangles(va, ib, shader);
 
             /*change red channel*/
             if (red > 1.0f) {
