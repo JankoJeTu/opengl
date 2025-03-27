@@ -1,8 +1,8 @@
-C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\src\Application.cpp;C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\Debug\Application.obj
-C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\src\IndexBuffer.cpp;C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\Debug\IndexBuffer.obj
-C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\src\Renderer.cpp;C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\Debug\Renderer.obj
-C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\src\Shader.cpp;C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\Debug\Shader.obj
-C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\src\vendor\glm\detail\glm.cpp;C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\Debug\glm.obj
-C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\src\vendor\glm\glm.cppm;C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\Debug\glm.obj
-C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\src\VertexArray.cpp;C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\Debug\VertexArray.obj
-C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\src\VertexBuffer.cpp;C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\Debug\VertexBuffer.obj
+C:\Users\honza\source\repos\opengl\opengl\src\Application.cpp;C:\Users\honza\source\repos\opengl\opengl\Debug\Application.obj
+C:\Users\honza\source\repos\opengl\opengl\src\IndexBuffer.cpp;C:\Users\honza\source\repos\opengl\opengl\Debug\IndexBuffer.obj
+C:\Users\honza\source\repos\opengl\opengl\src\Renderer.cpp;C:\Users\honza\source\repos\opengl\opengl\Debug\Renderer.obj
+C:\Users\honza\source\repos\opengl\opengl\src\Shader.cpp;C:\Users\honza\source\repos\opengl\opengl\Debug\Shader.obj
+C:\Users\honza\source\repos\opengl\opengl\src\vendor\glm\detail\glm.cpp;C:\Users\honza\source\repos\opengl\opengl\Debug\glm.obj
+C:\Users\honza\source\repos\opengl\opengl\src\vendor\glm\glm.cppm;C:\Users\honza\source\repos\opengl\opengl\Debug\glm.cppm.obj
+C:\Users\honza\source\repos\opengl\opengl\src\VertexArray.cpp;C:\Users\honza\source\repos\opengl\opengl\Debug\VertexArray.obj
+C:\Users\honza\source\repos\opengl\opengl\src\VertexBuffer.cpp;C:\Users\honza\source\repos\opengl\opengl\Debug\VertexBuffer.obj

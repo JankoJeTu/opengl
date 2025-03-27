@@ -41,12 +41,11 @@ struct RigidBody {
     glm::vec2 position;
     glm::vec2 previousPosition;
     glm::vec2 velocity;
-    glm::vec2 acceleration;
     float radius;
     float mass;
 
-    RigidBody(glm::vec2 pos, glm::vec2 v, glm::vec2 a, float r, float m)
-        : position(pos), velocity(v), previousPosition(0.0f), acceleration(a), radius(r), mass(m) { }
+    RigidBody(glm::vec2 pos, glm::vec2 v, float r, float m)
+        : position(pos), velocity(v), previousPosition(0.0f), radius(r), mass(m) { }
 
 };
 
@@ -108,8 +107,6 @@ int main(void)
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
-    glfwSwapInterval(10);
-
     /*check if GLEW is init*/
     if (glewInit() != GLEW_OK)
         std::cout << "err" << std::endl;
@@ -128,7 +125,32 @@ int main(void)
         unsigned int indices[] = { 0, 1, 2, 1, 2, 3 };
 
         /*rb circle*/
-        RigidBody circle(glm::vec2(0.0f, 0.0f), glm::vec2(vx, vy), glm::vec2(0.0f, 0.0f), r, m);
+        std::vector<RigidBody> circles;
+
+        RigidBody circleA(glm::vec2(0.0f, 0.0f), glm::vec2(vx, vy), r, m);
+        circles.push_back(circleA);
+
+        RigidBody circleB(glm::vec2(0.5f, 0.5f), glm::vec2(0.0f, 0.0f), 0.2f, m);
+        circles.push_back(circleB);
+
+
+        std::vector<float> bufferData;
+
+        for (const auto& circle : circles) {
+
+            float centerCordX = circle.position.x;
+            float centerCordY = circle.position.y;
+            float radius = circle.radius;
+
+            for (int j = 0; j < 4; j++) {
+
+                bufferData.push_back(quadVertices[j * 2]);
+                bufferData.push_back(quadVertices[j * 2 + 1]);
+                bufferData.push_back(centerCordX);
+                bufferData.push_back(centerCordY);
+                bufferData.push_back(radius);
+            }
+        }
 
         /*blending*/
         glEnable(GL_BLEND);
@@ -138,11 +160,13 @@ int main(void)
         VertexArray va;
 
         /*vertex buffer*/
-        VertexBuffer vb(quadVertices, 8 * sizeof(float));
+        VertexBuffer vb(bufferData.data(), bufferData.size() * sizeof(float));
 
         /*vertex buffer layout*/
         VertexBufferLayout layout;
-        layout.Push<float>(2);
+        layout.Push<float>(2);  //0
+        layout.Push<float>(2);  //1
+        layout.Push<float>(1);  //2
         va.AddBuffer(vb, layout);
 
         /*index buffer*/
@@ -155,8 +179,6 @@ int main(void)
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
         shader.SetUniform3f("u_Color", 0.2f, 0.3f, 0.8f);
-        shader.SetUniform1f("u_Radius", r);
-        shader.SetUniform2f("u_Center", 0.0f, 0.0f);
         shader.SetUniform1f("u_EdgeW", 0.005f);
 
         /*unbind*/
@@ -172,7 +194,7 @@ int main(void)
         while (!glfwWindowShouldClose(window))
         {
 
-            
+            /*
             double currentTime = glfwGetTime();
             double frameTime = currentTime - lastTime;
             lastTime = currentTime;
@@ -180,28 +202,22 @@ int main(void)
 
             while (accumulator >= dt) {
 
-                /*update physics*/
-                updatePhysics(circle, dt, bounce);
+                update physics
+                //updatePhysics(circle, dt, bounce);
 
                 accumulator -= dt;
             }
 
-            // Calculate interpolation factor (how far between physics updates)
+            //Calculate interpolation factor (how far between physics updates)
             float alpha = accumulator / dt;
 
-            //render(alpha); // Render with interpolated positions
-
+            render(alpha);  //Render with interpolated positions
+            */
 
             /* Render here */
             renderer.Clear();
-
             shader.Bind();
-            shader.SetUniform2f("u_Center", circle.position.x, circle.position.y);  //update pos
-
-            //shader.SetUniformMat4f("u_MVP", proj);
-
-            /*canvas*/
-            renderer.DrawTriangles(va, ib, shader);
+            renderer.Draw(va, shader, circles.size());
 
             /* Swap front and back buffers */
             glfwSwapBuffers(window);

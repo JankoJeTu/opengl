@@ -2,15 +2,23 @@
 #version 330 core
         
 layout(location = 0) in vec2 quadPosition;
+layout(location = 1) in vec2 centerPosition;
+layout(location = 2) in float circleRadius;
 
 out vec2 fragPos;
+out vec2 center;
+out float radius;
 
 //uniform mat4 u_MVP;
         
 void main()
 {
-    gl_Position = vec4(quadPosition, 0.0, 1.0);
+    vec2 worldPosition = centerPosition + quadPosition * circleRadius;
+
+    gl_Position = vec4(worldPosition, 0.0, 1.0);
+
     fragPos = quadPosition;
+    radius = circleRadius;
 };
 
 #shader fragment
@@ -19,16 +27,17 @@ void main()
 layout(location = 0) out vec4 color;
 
 in vec2 fragPos;
+in float radius;
 
-uniform vec2 u_Center;
-uniform float u_Radius;
 uniform vec3 u_Color;
 uniform float u_EdgeW;
 
 void main()
 {
-    float distance = length(fragPos - u_Center);
-    float alpha = smoothstep(u_Radius, u_Radius - u_EdgeW, distance);
+    float distance = length(fragPos);
+
+    //if (distance > 1.0) discard;
+    float alpha = smoothstep(radius, radius - u_EdgeW, distance);
 
     color = vec4(u_Color, alpha);
 
