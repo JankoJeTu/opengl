@@ -1,6 +1,3 @@
 ﻿  Application.cpp
-Debug\glm.obj : warning LNK4042: Objekt je zadaný víckrát. Nadbytečné se ignorují.
-LINK : warning LNK4098: Výchozí knihovna MSVCRT je v konfliktu s použitím jiných knihoven. Použijte /NODEFAULTLIB:library.
-LINK : warning LNK4098: Výchozí knihovna LIBCMT je v konfliktu s použitím jiných knihoven. Použijte /NODEFAULTLIB:library.
-glew32s.lib(glew.obj) : warning LNK4099: Soubor .pdb  se nenašel s glew32s.lib(glew.obj) nebo na . Objekt se propojí, jako by nebyly dostupné žádné ladicí informace.
+C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\src\Application.cpp(190,25): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
   opengl.vcxproj -> C:\Users\xfjanec\source\repos\JankoJeTu\opengl\Debug\Opengl.exe

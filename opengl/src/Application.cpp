@@ -22,39 +22,65 @@
 int xWindowSize = 800;
 int yWindowSize = 800;
 
+double accumulator = 0.0;
+double lastTime = glfwGetTime();
+
 const float gravity = -0.5f; // g acceleration
 const float dt = 0.016f; //frame
-float bounce = 1.005f; //energy loss
+float bounce = 1.0f; // how much energy to keep
+
+float vx = 0.0f;
+float vy = 0.4f;
+float r = 0.3f;
+float m = 1.0f;
+
 
 
 struct RigidBody {
 
     glm::vec2 position;
+    glm::vec2 previousPosition;
     glm::vec2 velocity;
     glm::vec2 acceleration;
     float radius;
     float mass;
 
     RigidBody(glm::vec2 pos, glm::vec2 v, glm::vec2 a, float r, float m)
-        : position(pos), velocity(v), acceleration(a), radius(r), mass(m) {}
+        : position(pos), velocity(v), previousPosition(0.0f), acceleration(a), radius(r), mass(m) { }
 
 };
 
 void updatePhysics(RigidBody& rigidBody, const float& dt, float& bounce) {
 
-    rigidBody.velocity.y += gravity * dt; //gravity
-    rigidBody.position.y += rigidBody.velocity.y * dt; //update position
+    rigidBody.previousPosition.x = rigidBody.position.x;
+    rigidBody.previousPosition.y = rigidBody.position.y;
 
-   /*assuming screen height - 1 to 1*/
+    rigidBody.velocity.y += gravity * dt; //gravity
+    rigidBody.position.y += rigidBody.velocity.y * dt; //update pos y
+    rigidBody.position.x += rigidBody.velocity.x * dt; //update pos x
+
+    /*assuming screen height - 1 to 1*/
+    // y
     if (rigidBody.position.y - rigidBody.radius < -1.0f) {
         rigidBody.position.y = -1.0f + rigidBody.radius; //stop at ground
         rigidBody.velocity.y *= -bounce; //energy loss
     }
-
     else if (rigidBody.position.y + rigidBody.radius > 1.0f) {
         rigidBody.position.y = 1.0f - rigidBody.radius; //stop at ceiling
         rigidBody.velocity.y *= -bounce; //energy loss
     }
+
+    // x
+    if (rigidBody.position.x - rigidBody.radius < -1.0f) {
+        rigidBody.position.x = -1.0f + rigidBody.radius; //stop at left
+        rigidBody.velocity.x *= -bounce; //energy loss
+    
+    }
+    else if (rigidBody.position.x + rigidBody.radius > 1.0f) {
+        rigidBody.position.x = 1.0f - rigidBody.radius; //stop at right
+        rigidBody.velocity.x *= -bounce; //energy loss
+    }
+
 }
 
 
@@ -102,7 +128,7 @@ int main(void)
         unsigned int indices[] = { 0, 1, 2, 1, 2, 3 };
 
         /*rb circle*/
-        RigidBody circle(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.8f), glm::vec2(0.0f, 0.0f), 0.5f, 1.0f);
+        RigidBody circle(glm::vec2(0.0f, 0.0f), glm::vec2(vx, vy), glm::vec2(0.0f, 0.0f), r, m);
 
         /*blending*/
         glEnable(GL_BLEND);
@@ -129,7 +155,7 @@ int main(void)
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
         shader.SetUniform3f("u_Color", 0.2f, 0.3f, 0.8f);
-        shader.SetUniform1f("u_Radius", 0.5f);
+        shader.SetUniform1f("u_Radius", r);
         shader.SetUniform2f("u_Center", 0.0f, 0.0f);
         shader.SetUniform1f("u_EdgeW", 0.005f);
 
@@ -146,8 +172,25 @@ int main(void)
         while (!glfwWindowShouldClose(window))
         {
 
-            /*update physics*/
-            updatePhysics(circle, dt, bounce);
+            
+            double currentTime = glfwGetTime();
+            double frameTime = currentTime - lastTime;
+            lastTime = currentTime;
+            accumulator += frameTime;
+
+            while (accumulator >= dt) {
+
+                /*update physics*/
+                updatePhysics(circle, dt, bounce);
+
+                accumulator -= dt;
+            }
+
+            // Calculate interpolation factor (how far between physics updates)
+            float alpha = accumulator / dt;
+
+            //render(alpha); // Render with interpolated positions
+
 
             /* Render here */
             renderer.Clear();
@@ -155,7 +198,6 @@ int main(void)
             shader.Bind();
             shader.SetUniform2f("u_Center", circle.position.x, circle.position.y);  //update pos
 
-            //shader.SetUniform3f("u_Color", 0.3f, 0.3f, 0.8f);
             //shader.SetUniformMat4f("u_MVP", proj);
 
             /*canvas*/
