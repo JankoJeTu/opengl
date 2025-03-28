@@ -5,14 +5,14 @@
         {
             "primary-output": "Debug\\glm.cppm.obj",
             "outputs": [
-                "C:\\Users\\honza\\source\\repos\\opengl\\opengl\\Debug\\vc143.pdb",
+                "C:\\Users\\xfjanec\\source\\repos\\JankoJeTu\\opengl\\opengl\\Debug\\vc143.pdb",
                 "Debug\\",
-                "C:\\Users\\honza\\source\\repos\\opengl\\opengl\\Debug\\glm.cppm.ifc"
+                "C:\\Users\\xfjanec\\source\\repos\\JankoJeTu\\opengl\\opengl\\Debug\\glm.cppm.ifc"
             ],
             "provides": [
                 {
                     "logical-name": "glm",
-                    "source-path": "c:\\users\\honza\\source\\repos\\opengl\\opengl\\src\\vendor\\glm\\glm.cppm",
+                    "source-path": "c:\\users\\xfjanec\\source\\repos\\jankojetu\\opengl\\opengl\\src\\vendor\\glm\\glm.cppm",
                     "is-interface": true
                 }
             ],

@@ -30,6 +30,15 @@ void VertexArray::AddBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
 	
 }
 
+void VertexArray::UpdateBuffer(const VertexBuffer& vb, unsigned int size, const void* data)
+{
+	Bind();
+	vb.Bind();
+
+	glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
+
+}
+
 void VertexArray::Bind() const
 {
 	GLCall(glBindVertexArray(m_RendererID));

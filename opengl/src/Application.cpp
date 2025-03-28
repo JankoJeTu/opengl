@@ -25,12 +25,10 @@ int yWindowSize = 800;
 double accumulator = 0.0;
 double lastTime = glfwGetTime();
 
-const float gravity = -0.5f; // g acceleration
+const float gravity = -0.0005f; // g acceleration
 const float dt = 0.016f; //frame
 float bounce = 1.0f; // how much energy to keep
 
-float vx = 0.0f;
-float vy = 0.4f;
 float r = 0.3f;
 float m = 1.0f;
 
@@ -49,7 +47,64 @@ struct RigidBody {
 
 };
 
-void updatePhysics(RigidBody& rigidBody, const float& dt, float& bounce) {
+void updatePhysics(std::vector<RigidBody>& circles, const float& dt, float& energyCoef) {
+
+    for (auto& circle : circles) {
+
+        circle.previousPosition.x = circle.position.x;
+        circle.previousPosition.y = circle.position.y;
+
+        circle.velocity.y += gravity * dt; //gravity
+        circle.position.y += circle.velocity.y * dt; //update pos y
+        circle.position.x += circle.velocity.x * dt; //update pos x
+
+        /*assuming screen height - 1 to 1*/
+    // y
+        if (circle.position.y - circle.radius < -1.0f) {
+            circle.position.y = -1.0f + circle.radius; //stop at ground
+            circle.velocity.y *= -bounce; //energy loss
+        }
+        else if (circle.position.y + circle.radius > 1.0f) {
+            circle.position.y = 1.0f - circle.radius; //stop at ceiling
+            circle.velocity.y *= -bounce; //energy loss
+        }
+
+        // x
+        if (circle.position.x - circle.radius < -1.0f) {
+            circle.position.x = -1.0f + circle.radius; //stop at left
+            circle.velocity.x *= -bounce; //energy loss
+
+        }
+        else if (circle.position.x + circle.radius > 1.0f) {
+            circle.position.x = 1.0f - circle.radius; //stop at right
+            circle.velocity.x *= -bounce; //energy loss
+        }
+    }
+}
+
+std::vector<float> GenBufferData(std::vector<RigidBody>& circles, float quadVertices[], std::vector<float>& bufferData) {
+
+    bufferData.clear();
+
+    for (const auto& circle : circles) {
+
+        float centerCordX = circle.position.x;
+        float centerCordY = circle.position.y;
+        float radius = circle.radius;
+
+        for (int j = 0; j < 4; j++) {
+
+            bufferData.push_back(quadVertices[j * 2]);
+            bufferData.push_back(quadVertices[j * 2 + 1]);
+            bufferData.push_back(centerCordX);
+            bufferData.push_back(centerCordY);
+            bufferData.push_back(radius);
+        }
+    }
+    return bufferData;
+}
+
+void updatePhysicsA(RigidBody& rigidBody, const float& dt, float& bounce) {
 
     rigidBody.previousPosition.x = rigidBody.position.x;
     rigidBody.previousPosition.y = rigidBody.position.y;
@@ -127,31 +182,15 @@ int main(void)
         /*rb circle*/
         std::vector<RigidBody> circles;
 
-        RigidBody circleA(glm::vec2(0.0f, 0.0f), glm::vec2(vx, vy), r, m);
+        RigidBody circleA(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f), r, m);
         circles.push_back(circleA);
 
         RigidBody circleB(glm::vec2(0.5f, 0.5f), glm::vec2(0.0f, 0.0f), 0.2f, m);
         circles.push_back(circleB);
 
-
         std::vector<float> bufferData;
-
-        for (const auto& circle : circles) {
-
-            float centerCordX = circle.position.x;
-            float centerCordY = circle.position.y;
-            float radius = circle.radius;
-
-            for (int j = 0; j < 4; j++) {
-
-                bufferData.push_back(quadVertices[j * 2]);
-                bufferData.push_back(quadVertices[j * 2 + 1]);
-                bufferData.push_back(centerCordX);
-                bufferData.push_back(centerCordY);
-                bufferData.push_back(radius);
-            }
-        }
-
+        std::vector<float> bData = GenBufferData(circles, quadVertices, bufferData);
+        
         /*blending*/
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -160,7 +199,7 @@ int main(void)
         VertexArray va;
 
         /*vertex buffer*/
-        VertexBuffer vb(bufferData.data(), bufferData.size() * sizeof(float));
+        VertexBuffer vb(bData.data(), bData.size() * sizeof(float));
 
         /*vertex buffer layout*/
         VertexBufferLayout layout;
@@ -216,7 +255,16 @@ int main(void)
 
             /* Render here */
             renderer.Clear();
+
+            updatePhysics(circles, dt, bounce);
+            bData = GenBufferData(circles, quadVertices, bufferData);
+
+            vb.Bind();
+            glBufferSubData(GL_ARRAY_BUFFER, 0, bData.size() * sizeof(float), bData.data());
+            //va.UpdateBuffer(vb, bData.size() * sizeof(float), bData.data());
+
             shader.Bind();
+
             renderer.Draw(va, shader, circles.size());
 
             /* Swap front and back buffers */
