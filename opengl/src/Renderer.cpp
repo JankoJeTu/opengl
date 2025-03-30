@@ -30,10 +30,10 @@ void Renderer::DrawTriangles(const VertexArray& va, const IndexBuffer& ib, const
     GLCall(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
 }
 
-void Renderer::Draw(const VertexArray& va, const Shader& shader, const unsigned int& count) const
+void Renderer::Draw(const VertexArray& va, const Shader& shader, const unsigned int count) const
 {
     shader.Bind();
     va.Bind();
-    GLCall(glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 8, count));
+    GLCall(glDrawArrays(GL_TRIANGLES, 0, count));
 }
 

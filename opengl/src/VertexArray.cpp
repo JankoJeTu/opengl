@@ -35,7 +35,7 @@ void VertexArray::UpdateBuffer(const VertexBuffer& vb, unsigned int size, const 
 	Bind();
 	vb.Bind();
 
-	glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
+	glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
 
 }
 
