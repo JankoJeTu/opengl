@@ -15,17 +15,32 @@
 #include "VertexBufferLayout.h"
 #include "Shader.h"
 
+#include <Windows.h>
+
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-
 
 int xWindowSize = 800;
 int yWindowSize = 800;
 
-
 const float gravity = -0.5f; // g acceleration
 const float dt = 0.016f; //frame
-float bounce = 0.9f; // how much energy to keep
+float bounce = 1.0f; // how much energy to keep
+
+
+void CalculateFrameRate()
+{
+    static float framesPerSecond = 0.0f;       // This will store our fps
+    static float lastTime = 0.0f;       // This will hold the time from the last frame
+    float currentTime = GetTickCount() * 0.001f;
+    ++framesPerSecond;
+    if (currentTime - lastTime > 1.0f)
+    {
+        lastTime = currentTime;
+        fprintf(stderr, "\nCurrent Frames Per Second: %d\n\n", (int)framesPerSecond);
+        framesPerSecond = 0;
+    }
+}
 
 
 
@@ -38,24 +53,58 @@ struct RigidBody {
     float radius;
     float mass;
 
-    RigidBody(std::string name, glm::vec2 pos, glm::vec2 v, float r)
-        : name(name), position(pos), velocity(v), radius(r), mass(1.0f) { }
+    glm::vec2 CheckCollision(std::vector<RigidBody>& others, std::vector<std::string>& names) const {
+
+        for (auto& other : others) {
+
+            if (!std::count(names.begin(), names.end(), other.name)) {
+                float dx = other.position.x - this->position.x;
+                float dy = other.position.y - this->position.y;
+
+                float distance = (dx * dx + dy * dy);
+
+                if ((other.radius + this->radius)*(other.radius + this->radius) > distance) {
+
+                    glm::vec2 velocityOfThis = this->velocity - (2.0f * other.mass *
+                        glm::dot((this->velocity - other.velocity), (this->position - other.position)) *
+                        (this->position - other.position)) / 
+                        ((this->mass + other.mass) * distance);
+
+                    glm::vec2 velocityOfOther = other.velocity - (2.0f * this->mass *
+                        glm::dot((other.velocity - this->velocity), (other.position - this->position)) *
+                        (other.position - this->position)) / ((other.mass + this->mass) * distance);
+
+                    other.velocity = velocityOfOther;
+                    return velocityOfThis;
+                }
+            }
+        }
+        return glm::vec2(this->velocity);
+    }
+
+    RigidBody(std::string name, glm::vec2 pos, glm::vec2 v, float r, float m)
+        : name(name), position(pos), velocity(v), radius(r), mass(m) { }
 
 };
 
+
+
 void UpdatePhysics(std::vector<RigidBody>& circles, const float& dt, float& energyCoef) {
+
+    std::vector<std::string> names;
 
     for (auto& circle : circles) {
 
-        //circle.previousPosition.x = circle.position.x;
-        //circle.previousPosition.y = circle.position.y;
+        names.push_back(circle.name);
+        circle.velocity = circle.CheckCollision(circles, names);
 
-        circle.velocity.y += gravity * dt; //gravity
+        //circle.velocity.y += gravity * dt; //gravity
+
         circle.position.y += circle.velocity.y * dt; //update pos y
         circle.position.x += circle.velocity.x * dt; //update pos x
 
         /*assuming screen height - 1 to 1*/
-    // y
+        // y
         if (circle.position.y - circle.radius < -1.0f) {
             circle.position.y = -1.0f + circle.radius; //stop at ground
             circle.velocity.y *= -bounce; //energy loss
@@ -64,9 +113,8 @@ void UpdatePhysics(std::vector<RigidBody>& circles, const float& dt, float& ener
             circle.position.y = 1.0f - circle.radius; //stop at ceiling
             circle.velocity.y *= -bounce; //energy loss
         }
-
         // x
-        if (circle.position.x - circle.radius < -1.0f) {
+        else if (circle.position.x - circle.radius < -1.0f) {
             circle.position.x = -1.0f + circle.radius; //stop at left
             circle.velocity.x *= -bounce; //energy loss
 
@@ -76,6 +124,7 @@ void UpdatePhysics(std::vector<RigidBody>& circles, const float& dt, float& ener
             circle.velocity.x *= -bounce; //energy loss
         }
     }
+    names.clear();
 }
 
 void UpdateBufferData(std::vector<RigidBody>& circles, float (&quadVertices)[], VertexArray& va, VertexBuffer& vb) {
@@ -146,15 +195,26 @@ int main(void)
         /*rb circle*/
         std::vector<RigidBody> circles;
 
-        RigidBody circleA("A", glm::vec2(0.5f, 0.5f), glm::vec2(0.0f, 0.0f), 0.3f);
+        RigidBody circleA("A", glm::vec2(0.0f, 0.0f), glm::vec2(0.5f, 0.0f), 0.1f, 1.0f);
         circles.push_back(circleA);
 
-        RigidBody circleB("B", glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 0.0f), 0.2f);
+        RigidBody circleB("B", glm::vec2(0.3f, 0.3f), glm::vec2(0.3f, 0.4f), 0.1f, 1.0f);
         circles.push_back(circleB);
 
-        RigidBody circleC("C", glm::vec2(-0.5f, -0.5f), glm::vec2(0.0f, 0.0f), 0.1f);
+        RigidBody circleC("C", glm::vec2(0.6f, 0.6f), glm::vec2(-0.3f, 0.0f), 0.1f, 1.0f);
         circles.push_back(circleC);
 
+        RigidBody circleD("D", glm::vec2(0.6f, 0.0f), glm::vec2(-0.1f, 0.0f), 0.1f, 1.0f);
+        circles.push_back(circleD);
+
+        RigidBody circleE("E", glm::vec2(0.0f, 0.6f), glm::vec2(-0.1f, -0.1f), 0.1f, 1.0f);
+        circles.push_back(circleE);
+
+        RigidBody circleF("F", glm::vec2(-0.3f, 0.3f), glm::vec2(-0.1f, 0.2f), 0.1f, 1.0f);
+        circles.push_back(circleF);
+
+        RigidBody circleG("G", glm::vec2(-0.6f, 0.6f), glm::vec2(-0.4f, 0.0f), 0.1f, 1.0f);
+        circles.push_back(circleG);
 
         /*buffer data*/
         std::vector<float> bufferData;
@@ -218,7 +278,9 @@ int main(void)
             UpdatePhysics(circles, dt, bounce);
             UpdateBufferData(circles, quadVertices, va, vb);
 
-            renderer.Draw(va, shader, 18);
+            //CalculateFrameRate();
+
+            renderer.Draw(va, shader, circles.size() * 6);
 
             /* Swap front and back buffers */
             glfwSwapBuffers(window);
