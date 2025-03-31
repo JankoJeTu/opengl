@@ -24,9 +24,13 @@ int xWindowSize = 800;
 int yWindowSize = 800;
 
 const float gravity = -0.5f; // g acceleration
-const float dt = 0.016f; //frame
-float bounce = 1.0f; // how much energy to keep
+bool gravityEnabled = 0;
+const float dt = 0.016f; //60 fps
+float bounce = 0.9f; // how much energy to keep
 
+double accumulator = 0.0;
+double lastTime = glfwGetTime();
+bool doLerp = 1;
 
 void CalculateFrameRate()
 {
@@ -42,13 +46,11 @@ void CalculateFrameRate()
     }
 }
 
-
-
-
 struct RigidBody {
 
     std::string name;
     glm::vec2 position;
+    glm::vec2 prevPos;
     glm::vec2 velocity;
     float radius;
     float mass;
@@ -83,11 +85,17 @@ struct RigidBody {
     }
 
     RigidBody(std::string name, glm::vec2 pos, glm::vec2 v, float r, float m)
-        : name(name), position(pos), velocity(v), radius(r), mass(m) { }
+        : name(name), position(pos), prevPos(1.0f), velocity(v), radius(r), mass(m) { }
 
 };
 
+void Lerp(std::vector<RigidBody>& circles, float& lerpFactor) {
 
+    for (auto& circle : circles) {
+
+        glm::vec2 interp = circle.prevPos * (1.0f - lerpFactor) + circle.position * lerpFactor;
+    }
+}
 
 void UpdatePhysics(std::vector<RigidBody>& circles, const float& dt, float& energyCoef) {
 
@@ -96,9 +104,14 @@ void UpdatePhysics(std::vector<RigidBody>& circles, const float& dt, float& ener
     for (auto& circle : circles) {
 
         names.push_back(circle.name);
+        circle.prevPos = circle.position;
+
         circle.velocity = circle.CheckCollision(circles, names);
 
-        //circle.velocity.y += gravity * dt; //gravity
+        if (gravityEnabled) {
+
+            circle.velocity.y += gravity * dt; //gravity
+        }
 
         circle.position.y += circle.velocity.y * dt; //update pos y
         circle.position.x += circle.velocity.x * dt; //update pos x
@@ -114,7 +127,7 @@ void UpdatePhysics(std::vector<RigidBody>& circles, const float& dt, float& ener
             circle.velocity.y *= -bounce; //energy loss
         }
         // x
-        else if (circle.position.x - circle.radius < -1.0f) {
+        if (circle.position.x - circle.radius < -1.0f) {
             circle.position.x = -1.0f + circle.radius; //stop at left
             circle.velocity.x *= -bounce; //energy loss
 
@@ -271,11 +284,29 @@ int main(void)
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
+            if (doLerp) {
+
+                double currentTime = glfwGetTime();
+                double frameTime = currentTime - lastTime;
+                lastTime = currentTime;
+                accumulator += frameTime;
+
+                while (accumulator >= dt) {
+                    UpdatePhysics(circles, dt, bounce);
+                    accumulator -= dt;
+                }
+
+                // Calculate interpolation factor (how far between physics updates)
+                float lerpFactor = accumulator / dt;
+                Lerp(circles, lerpFactor);
+            }
+            else {
+                UpdatePhysics(circles, dt, bounce);
+            }
 
             /* Render here */
             renderer.Clear();
 
-            UpdatePhysics(circles, dt, bounce);
             UpdateBufferData(circles, quadVertices, va, vb);
 
             //CalculateFrameRate();
