@@ -23,7 +23,7 @@
 int xWindowSize = 800;
 int yWindowSize = 800;
 
-const float G = 0.05f;
+const float G = 0.005f;
 
 const float dt = 0.016f; //60 fps
 
@@ -35,7 +35,7 @@ double accumulator = 0.0;
 double lastTime = glfwGetTime();
 bool doLerp = 1;
 
-void CalculateFrameRate()
+/*void CalculateFrameRate()
 {
     static float framesPerSecond = 0.0f;       // This will store our fps
     static float lastTime = 0.0f;       // This will hold the time from the last frame
@@ -47,7 +47,7 @@ void CalculateFrameRate()
         fprintf(stderr, "\nCurrent Frames Per Second: %d\n\n", (int)framesPerSecond);
         framesPerSecond = 0;
     }
-}
+}*/
 
 struct RigidBody {
 
@@ -98,21 +98,30 @@ struct RigidBody {
                 float distanceSq = (dx * dx + dy * dy);
                 float minDist = (this->radius + other.radius);
 
-                if (distanceSq < minDist * minDist) {
-                    distanceSq = minDist;
-                }
+                //if (distanceSq < minDist * minDist) {
+                //    distanceSq = minDist * minDist;
+                //}
 
                 float force = (G * this->mass * other.mass) / distanceSq;
 
                 float dirX = dx / std::pow(distanceSq, 1.0f / 2.0f);
                 float dirY = dy / std::pow(distanceSq, 1.0f / 2.0f);
 
-                glm::vec2 accOfThis((force / this->mass) * dirX, (force / this->mass) * dirY);
-                glm::vec2 accOfOther((force / other.mass) * -dirX, (force / other.mass) * -dirY);
+                //glm::vec2 accOfThis((force / this->mass) * dirX, (force / this->mass) * dirY);
+                //glm::vec2 accOfOther((force / other.mass) * -dirX, (force / other.mass) * -dirY);
                 
+                float ax1 = (force / this->mass) * dirX;
+                float ay1 = (force / this->mass) * dirY;
+                float ax2 = (force / other.mass) * -dirX;
+                float ay2 = (force / other.mass) * -dirY;
+                
+                other.velocity.x += ax2 * dt;
+                other.velocity.y += ay2 * dt;
+
+                glm::vec2 velOfThis(this->velocity.x + ax1 * dt, this->velocity.y + ay1 * dt);
+
                 /*returns velocity*/
-                other.velocity += accOfOther * dt;
-                return accOfThis * dt;
+                return velOfThis;
             }
         }
         return glm::vec2(this->velocity);
@@ -158,7 +167,8 @@ void UpdatePhysics(std::vector<RigidBody>& circles, const float& dt, float& ener
         names.push_back(circle.name);
         circle.prevPos = circle.position;
 
-        circle.velocity = circle.CheckCollision(circles, names);
+        /*collisions*/
+        //circle.velocity = circle.CheckCollision(circles, names);
 
         if (gravityEnabled) {
 
@@ -260,10 +270,10 @@ int main(void)
         /*rb circle*/
         std::vector<RigidBody> circles;
 
-        RigidBody circleA("A", glm::vec2(0.0f, 0.0f), glm::vec2(50.0f, 0.0f), 0.1f, 10.0f);
+        RigidBody circleA("A", glm::vec2(0.0f, 0.0f), glm::vec2(-0.1f, 0.0f), 0.1f, 1.0f);
         circles.push_back(circleA);
 
-        RigidBody circleB("B", glm::vec2(0.3f, 0.3f), glm::vec2(0.0f, 0.0f), 0.1f, 1.0f);
+        RigidBody circleB("B", glm::vec2(0.0f, 0.3f), glm::vec2(0.1f, 0.0f), 0.1f, 1.0f);
         circles.push_back(circleB);
         /*
         RigidBody circleC("C", glm::vec2(0.6f, 0.6f), glm::vec2(-0.3f, 0.0f), 0.1f, 0.4f);
@@ -362,7 +372,7 @@ int main(void)
 
             UpdateBufferData(circles, quadVertices, va, vb);
 
-            CalculateFrameRate();
+            //CalculateFrameRate();
 
             renderer.Draw(va, shader, circles.size() * 6);
 
