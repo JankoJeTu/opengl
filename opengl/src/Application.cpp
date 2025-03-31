@@ -23,9 +23,12 @@
 int xWindowSize = 800;
 int yWindowSize = 800;
 
+const float G = 0.05f;
+
+const float dt = 0.016f; //60 fps
+
 const float gravity = -0.5f; // g acceleration
 bool gravityEnabled = 0;
-const float dt = 0.016f; //60 fps
 float bounce = 0.9f; // how much energy to keep
 
 double accumulator = 0.0;
@@ -63,22 +66,53 @@ struct RigidBody {
                 float dx = other.position.x - this->position.x;
                 float dy = other.position.y - this->position.y;
 
-                float distance = (dx * dx + dy * dy);
+                float distanceSq = (dx * dx + dy * dy);
 
-                if ((other.radius + this->radius)*(other.radius + this->radius) > distance) {
+                if ((other.radius + this->radius)*(other.radius + this->radius) > distanceSq) {
 
                     glm::vec2 velocityOfThis = this->velocity - (2.0f * other.mass *
                         glm::dot((this->velocity - other.velocity), (this->position - other.position)) *
                         (this->position - other.position)) / 
-                        ((this->mass + other.mass) * distance);
+                        ((this->mass + other.mass) * distanceSq);
 
                     glm::vec2 velocityOfOther = other.velocity - (2.0f * this->mass *
                         glm::dot((other.velocity - this->velocity), (other.position - this->position)) *
-                        (other.position - this->position)) / ((other.mass + this->mass) * distance);
+                        (other.position - this->position)) / ((other.mass + this->mass) * distanceSq);
 
                     other.velocity = velocityOfOther;
                     return velocityOfThis;
                 }
+            }
+        }
+        return glm::vec2(this->velocity);
+    }
+
+    glm::vec2 CheckForce(std::vector<RigidBody>& others, std::vector<std::string>& names) const {
+
+        for (auto& other : others) {
+
+            if (!std::count(names.begin(), names.end(), other.name)) {
+
+                float dx = other.position.x - this->position.x;
+                float dy = other.position.y - this->position.y;
+                float distanceSq = (dx * dx + dy * dy);
+                float minDist = (this->radius + other.radius);
+
+                if (distanceSq < minDist * minDist) {
+                    distanceSq = minDist;
+                }
+
+                float force = (G * this->mass * other.mass) / distanceSq;
+
+                float dirX = dx / std::pow(distanceSq, 1.0f / 2.0f);
+                float dirY = dy / std::pow(distanceSq, 1.0f / 2.0f);
+
+                glm::vec2 accOfThis((force / this->mass) * dirX, (force / this->mass) * dirY);
+                glm::vec2 accOfOther((force / other.mass) * -dirX, (force / other.mass) * -dirY);
+                
+                /*returns velocity*/
+                other.velocity += accOfOther * dt;
+                return accOfThis * dt;
             }
         }
         return glm::vec2(this->velocity);
@@ -95,6 +129,24 @@ void Lerp(std::vector<RigidBody>& circles, float& lerpFactor) {
 
         glm::vec2 interp = circle.prevPos * (1.0f - lerpFactor) + circle.position * lerpFactor;
     }
+}
+
+void Orbit(std::vector<RigidBody>& circles, const float& dt) {
+
+    std::vector<std::string> names;
+
+    for (auto& circle : circles) {
+
+        names.push_back(circle.name);
+        circle.prevPos = circle.position;
+
+        circle.velocity = circle.CheckForce(circles, names);
+
+        circle.position.y += circle.velocity.y * dt; //update pos y
+        circle.position.x += circle.velocity.x * dt; //update pos x
+
+    }
+    names.clear();
 }
 
 void UpdatePhysics(std::vector<RigidBody>& circles, const float& dt, float& energyCoef) {
@@ -208,15 +260,15 @@ int main(void)
         /*rb circle*/
         std::vector<RigidBody> circles;
 
-        RigidBody circleA("A", glm::vec2(0.0f, 0.0f), glm::vec2(0.5f, 0.0f), 0.1f, 1.0f);
+        RigidBody circleA("A", glm::vec2(0.0f, 0.0f), glm::vec2(50.0f, 0.0f), 0.1f, 10.0f);
         circles.push_back(circleA);
 
-        RigidBody circleB("B", glm::vec2(0.3f, 0.3f), glm::vec2(0.3f, 0.4f), 0.1f, 1.0f);
+        RigidBody circleB("B", glm::vec2(0.3f, 0.3f), glm::vec2(0.0f, 0.0f), 0.1f, 1.0f);
         circles.push_back(circleB);
-
-        RigidBody circleC("C", glm::vec2(0.6f, 0.6f), glm::vec2(-0.3f, 0.0f), 0.1f, 1.0f);
+        /*
+        RigidBody circleC("C", glm::vec2(0.6f, 0.6f), glm::vec2(-0.3f, 0.0f), 0.1f, 0.4f);
         circles.push_back(circleC);
-
+        
         RigidBody circleD("D", glm::vec2(0.6f, 0.0f), glm::vec2(-0.1f, 0.0f), 0.1f, 1.0f);
         circles.push_back(circleD);
 
@@ -227,7 +279,7 @@ int main(void)
         circles.push_back(circleF);
 
         RigidBody circleG("G", glm::vec2(-0.6f, 0.6f), glm::vec2(-0.4f, 0.0f), 0.1f, 1.0f);
-        circles.push_back(circleG);
+        circles.push_back(circleG);*/
 
         /*buffer data*/
         std::vector<float> bufferData;
@@ -269,6 +321,7 @@ int main(void)
         /*shader*/
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
+
         shader.SetUniform3f("u_Color", 0.2f, 0.3f, 0.8f);
         shader.SetUniform1f("u_Edge", 0.005f);
 
@@ -276,7 +329,6 @@ int main(void)
         va.Unbind();
         shader.Unbind();
         vb.Unbind();
-        //ib.Unbind();
 
         /*renderer*/
         Renderer renderer;
@@ -292,7 +344,8 @@ int main(void)
                 accumulator += frameTime;
 
                 while (accumulator >= dt) {
-                    UpdatePhysics(circles, dt, bounce);
+                    //UpdatePhysics(circles, dt, bounce);
+                    Orbit(circles, dt);
                     accumulator -= dt;
                 }
 
@@ -309,7 +362,7 @@ int main(void)
 
             UpdateBufferData(circles, quadVertices, va, vb);
 
-            //CalculateFrameRate();
+            CalculateFrameRate();
 
             renderer.Draw(va, shader, circles.size() * 6);
 
