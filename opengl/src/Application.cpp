@@ -28,7 +28,7 @@ const float G = 0.005f;
 const float dt = 0.016f; //60 fps
 
 const float gravity = -0.5f; // g acceleration
-bool gravityEnabled = 0;
+bool gravityEnabled = 1;
 float bounce = 0.9f; // how much energy to keep
 
 double accumulator = 0.0;
@@ -98,17 +98,10 @@ struct RigidBody {
                 float distanceSq = (dx * dx + dy * dy);
                 float minDist = (this->radius + other.radius);
 
-                //if (distanceSq < minDist * minDist) {
-                //    distanceSq = minDist * minDist;
-                //}
-
                 float force = (G * this->mass * other.mass) / distanceSq;
 
                 float dirX = dx / std::pow(distanceSq, 1.0f / 2.0f);
                 float dirY = dy / std::pow(distanceSq, 1.0f / 2.0f);
-
-                //glm::vec2 accOfThis((force / this->mass) * dirX, (force / this->mass) * dirY);
-                //glm::vec2 accOfOther((force / other.mass) * -dirX, (force / other.mass) * -dirY);
                 
                 float ax1 = (force / this->mass) * dirX;
                 float ay1 = (force / this->mass) * dirY;
@@ -168,7 +161,7 @@ void UpdatePhysics(std::vector<RigidBody>& circles, const float& dt, float& ener
         circle.prevPos = circle.position;
 
         /*collisions*/
-        //circle.velocity = circle.CheckCollision(circles, names);
+        circle.velocity = circle.CheckCollision(circles, names);
 
         if (gravityEnabled) {
 
@@ -270,12 +263,12 @@ int main(void)
         /*rb circle*/
         std::vector<RigidBody> circles;
 
-        RigidBody circleA("A", glm::vec2(0.0f, 0.0f), glm::vec2(-0.1f, 0.0f), 0.1f, 1.0f);
+        RigidBody circleA("A", glm::vec2(0.0f, 0.0f), glm::vec2(-0.3f, 0.0f), 0.1f, 10.0f);
         circles.push_back(circleA);
 
-        RigidBody circleB("B", glm::vec2(0.0f, 0.3f), glm::vec2(0.1f, 0.0f), 0.1f, 1.0f);
+        RigidBody circleB("B", glm::vec2(0.0f, 0.3f), glm::vec2(0.3f, 0.0f), 0.1f, 10.0f);
         circles.push_back(circleB);
-        /*
+        
         RigidBody circleC("C", glm::vec2(0.6f, 0.6f), glm::vec2(-0.3f, 0.0f), 0.1f, 0.4f);
         circles.push_back(circleC);
         
@@ -289,7 +282,7 @@ int main(void)
         circles.push_back(circleF);
 
         RigidBody circleG("G", glm::vec2(-0.6f, 0.6f), glm::vec2(-0.4f, 0.0f), 0.1f, 1.0f);
-        circles.push_back(circleG);*/
+        circles.push_back(circleG);
 
         /*buffer data*/
         std::vector<float> bufferData;
@@ -354,8 +347,8 @@ int main(void)
                 accumulator += frameTime;
 
                 while (accumulator >= dt) {
-                    //UpdatePhysics(circles, dt, bounce);
-                    Orbit(circles, dt);
+                    UpdatePhysics(circles, dt, bounce);
+                    //Orbit(circles, dt);
                     accumulator -= dt;
                 }
 
@@ -365,6 +358,7 @@ int main(void)
             }
             else {
                 UpdatePhysics(circles, dt, bounce);
+                //Orbit(circles, dt);
             }
 
             /* Render here */
