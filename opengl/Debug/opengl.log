@@ -1,9 +1,4 @@
 ﻿  Hledají se závislosti modulů ve zdrojích...
   Application.cpp
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared\minwindef.h(130,9): warning C4005: APIENTRY: předefinování makra
-  (kompilování zdrojového souboru src/Application.cpp)
-      C:\Users\xfjanec\source\repos\JankoJeTu\opengl\Dependencies\GLFW\include\GLFW\glfw3.h(123,11):
-      zkontrolujte předchozí definici „APIENTRY“
-  
-C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\src\Application.cpp(356,34): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
+C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\src\Application.cpp(371,34): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
   opengl.vcxproj -> C:\Users\xfjanec\source\repos\JankoJeTu\opengl\Debug\Opengl.exe

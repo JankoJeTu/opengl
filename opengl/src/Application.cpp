@@ -15,12 +15,12 @@
 #include "VertexBufferLayout.h"
 #include "Shader.h"
 
-#include <Windows.h>
+//#include <Windows.h>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-int xWindowSize = 800;
+int xWindowSize = 800;  //must be sq
 int yWindowSize = 800;
 
 const float G = 0.005f;
@@ -28,7 +28,7 @@ const float G = 0.005f;
 const float dt = 0.016f; //60 fps
 
 const float gravity = -0.5f; // g acceleration
-bool gravityEnabled = 1;
+bool gravityEnabled = 0;
 float bounce = 0.9f; // how much energy to keep
 
 double accumulator = 0.0;
@@ -57,6 +57,7 @@ struct RigidBody {
     glm::vec2 velocity;
     float radius;
     float mass;
+    glm::vec3 color;
 
     glm::vec2 CheckCollision(std::vector<RigidBody>& others, std::vector<std::string>& names) const {
 
@@ -120,8 +121,8 @@ struct RigidBody {
         return glm::vec2(this->velocity);
     }
 
-    RigidBody(std::string name, glm::vec2 pos, glm::vec2 v, float r, float m)
-        : name(name), position(pos), prevPos(1.0f), velocity(v), radius(r), mass(m) { }
+    RigidBody(std::string name, glm::vec2 pos, glm::vec2 v, float r, float m, glm::vec3 color)
+        : name(name), position(pos), prevPos(1.0f), velocity(v), radius(r), mass(m), color(color) { }
 
 };
 
@@ -204,6 +205,9 @@ void UpdateBufferData(std::vector<RigidBody>& circles, float (&quadVertices)[], 
         float centerCordX = circle.position.x;
         float centerCordY = circle.position.y;
         float radius = circle.radius;
+        float colorR = circle.color.x;
+        float colorG = circle.color.y;
+        float colorB = circle.color.z;
 
         for (int j = 0; j < 6; j++) {
 
@@ -212,6 +216,9 @@ void UpdateBufferData(std::vector<RigidBody>& circles, float (&quadVertices)[], 
             bufferData.push_back(centerCordX);
             bufferData.push_back(centerCordY);
             bufferData.push_back(radius);
+            bufferData.push_back(colorR);
+            bufferData.push_back(colorG);
+            bufferData.push_back(colorB);
         }
     }
 
@@ -263,26 +270,27 @@ int main(void)
         /*rb circle*/
         std::vector<RigidBody> circles;
 
-        RigidBody circleA("A", glm::vec2(0.0f, 0.0f), glm::vec2(-0.3f, 0.0f), 0.1f, 10.0f);
+                        //name         center                  velocity      radius  mass            color
+        RigidBody circleA("A", glm::vec2(0.0f, 0.3f), glm::vec2(0.1f, 0.0f), 0.1f, 4.0f, glm::vec3(0.6f, 0.8f, 1.0f));
         circles.push_back(circleA);
 
-        RigidBody circleB("B", glm::vec2(0.0f, 0.3f), glm::vec2(0.3f, 0.0f), 0.1f, 10.0f);
+        RigidBody circleB("B", glm::vec2(0.0f, -0.3f), glm::vec2(-0.1f, 0.0f), 0.1f, 4.0f, glm::vec3(0.8f, 0.6f, 1.0f));
         circles.push_back(circleB);
         
-        RigidBody circleC("C", glm::vec2(0.6f, 0.6f), glm::vec2(-0.3f, 0.0f), 0.1f, 0.4f);
+        RigidBody circleC("C", glm::vec2(0.6f, 0.6f), glm::vec2(-0.3f, 0.0f), 0.2f, 6.0f, glm::vec3(0.2f, 0.6f, 0.8f));
         circles.push_back(circleC);
-        
-        RigidBody circleD("D", glm::vec2(0.6f, 0.0f), glm::vec2(-0.1f, 0.0f), 0.1f, 1.0f);
+        /*
+        RigidBody circleD("D", glm::vec2(0.6f, 0.0f), glm::vec2(-0.1f, 0.0f), 0.1f, 1.0f, glm::vec3(0.2f, 0.6f, 1.0f));
         circles.push_back(circleD);
 
-        RigidBody circleE("E", glm::vec2(0.0f, 0.6f), glm::vec2(-0.1f, -0.1f), 0.1f, 1.0f);
+        RigidBody circleE("E", glm::vec2(0.0f, 0.6f), glm::vec2(-0.1f, -0.1f), 0.1f, 1.0f, glm::vec3(0.2f, 0.6f, 1.0f));
         circles.push_back(circleE);
 
-        RigidBody circleF("F", glm::vec2(-0.3f, 0.3f), glm::vec2(-0.1f, 0.2f), 0.1f, 1.0f);
+        RigidBody circleF("F", glm::vec2(-0.3f, 0.3f), glm::vec2(-0.1f, 0.2f), 0.1f, 1.0f, glm::vec3(0.2f, 0.6f, 1.0f));
         circles.push_back(circleF);
 
-        RigidBody circleG("G", glm::vec2(-0.6f, 0.6f), glm::vec2(-0.4f, 0.0f), 0.1f, 1.0f);
-        circles.push_back(circleG);
+        RigidBody circleG("G", glm::vec2(-0.6f, 0.6f), glm::vec2(-0.4f, 0.0f), 0.1f, 1.0f, glm::vec3(0.2f, 0.6f, 1.0f));
+        circles.push_back(circleG);*/
 
         /*buffer data*/
         std::vector<float> bufferData;
@@ -292,6 +300,9 @@ int main(void)
             float centerCordX = circle.position.x;
             float centerCordY = circle.position.y;
             float radius = circle.radius;
+            float colorR = circle.color.x;
+            float colorG = circle.color.y;
+            float colorB = circle.color.z;
 
             for (int j = 0; j < 6; j++) {
 
@@ -300,6 +311,9 @@ int main(void)
                 bufferData.push_back(centerCordX);
                 bufferData.push_back(centerCordY);
                 bufferData.push_back(radius);
+                bufferData.push_back(colorR);
+                bufferData.push_back(colorG);
+                bufferData.push_back(colorB);
             }
         }
         
@@ -318,6 +332,7 @@ int main(void)
         layout.Push<float>(2);  //0
         layout.Push<float>(2);  //1
         layout.Push<float>(1);  //2
+        layout.Push<float>(3);  //3
         va.AddBuffer(vb, layout);
 
 
@@ -325,7 +340,7 @@ int main(void)
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
 
-        shader.SetUniform3f("u_Color", 0.2f, 0.3f, 0.8f);
+        //shader.SetUniform3f("u_Color", 0.2f, 0.3f, 0.8f);
         shader.SetUniform1f("u_Edge", 0.005f);
 
         /*unbind*/
@@ -347,8 +362,8 @@ int main(void)
                 accumulator += frameTime;
 
                 while (accumulator >= dt) {
-                    UpdatePhysics(circles, dt, bounce);
-                    //Orbit(circles, dt);
+                    //UpdatePhysics(circles, dt, bounce);
+                    Orbit(circles, dt);
                     accumulator -= dt;
                 }
 
@@ -357,8 +372,8 @@ int main(void)
                 Lerp(circles, lerpFactor);
             }
             else {
-                UpdatePhysics(circles, dt, bounce);
-                //Orbit(circles, dt);
+                //UpdatePhysics(circles, dt, bounce);
+                Orbit(circles, dt);
             }
 
             /* Render here */
