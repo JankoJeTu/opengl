@@ -51,7 +51,9 @@ bool doLerp = 1;
 }*/
 
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+
     if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+
         paused = !paused;
     }
 }
@@ -66,7 +68,7 @@ struct RigidBody {
     float mass;
     glm::vec3 color;
 
-    glm::vec2 CheckCollision(std::vector<RigidBody>& others, std::vector<std::string>& names) const {
+    glm::vec2 ElasticCollision(std::vector<RigidBody>& others, std::vector<std::string>& names) const {
 
         for (auto& other : others) {
 
@@ -104,7 +106,7 @@ struct RigidBody {
                 float dx = other.position.x - this->position.x;
                 float dy = other.position.y - this->position.y;
                 float distanceSq = (dx * dx + dy * dy);
-                float minDist = (this->radius + other.radius);
+                float sumRadii = (this->radius + other.radius);
 
                 float force = (G * this->mass * other.mass) / distanceSq;
 
@@ -118,6 +120,8 @@ struct RigidBody {
                 
                 other.velocity.x += ax2 * dt;
                 other.velocity.y += ay2 * dt;
+
+                /*lose mass*/
 
                 glm::vec2 velOfThis(this->velocity.x + ax1 * dt, this->velocity.y + ay1 * dt);
 
@@ -169,7 +173,7 @@ void UpdatePhysics(std::vector<RigidBody>& circles, const float& dt, float& ener
         circle.prevPos = circle.position;
 
         /*collisions*/
-        circle.velocity = circle.CheckCollision(circles, names);
+        circle.velocity = circle.ElasticCollision(circles, names);
 
         if (gravityEnabled) {
 
