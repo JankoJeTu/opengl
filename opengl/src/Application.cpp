@@ -14,6 +14,7 @@
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
 #include "Shader.h"
+#include "Camera.h"
 
 //#include <Windows.h>
 
@@ -340,7 +341,6 @@ int main(void)
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
 
-        //shader.SetUniform3f("u_Color", 0.2f, 0.3f, 0.8f);
         shader.SetUniform1f("u_Edge", 0.005f);
 
         /*unbind*/
@@ -351,9 +351,17 @@ int main(void)
         /*renderer*/
         Renderer renderer;
 
+        /*camera*/
+        Camera2D camera;
+
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
+            camera.ProcessInput(window);
+            glm::mat4 cameraMat = camera.getCameraMatrix();
+            shader.Bind();
+            shader.SetUniformMat4f("u_Cam", cameraMat);
+
             if (doLerp) {
 
                 double currentTime = glfwGetTime();

@@ -1,4 +1,9 @@
-﻿  Hledají se závislosti modulů ve zdrojích...
+﻿  Scanning sources for module dependencies...
   Application.cpp
-C:\Users\xfjanec\source\repos\JankoJeTu\opengl\opengl\src\Application.cpp(371,34): warning C4244: inicializování: double se převádí na float; může dojít ke ztrátě dat.
-  opengl.vcxproj -> C:\Users\xfjanec\source\repos\JankoJeTu\opengl\Debug\Opengl.exe
+C:\Users\honza\source\repos\opengl\opengl\src\Application.cpp(379,34): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  Camera.cpp
+  Generating Code...
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
+glew32s.lib(glew.obj) : warning LNK4099: PDB '' was not found with 'glew32s.lib(glew.obj)' or at ''; linking object as if no debug info
+  opengl.vcxproj -> C:\Users\honza\source\repos\opengl\Debug\Opengl.exe
