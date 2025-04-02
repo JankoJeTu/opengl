@@ -25,15 +25,15 @@ int xWindowSize = 800;  //must be sq
 int yWindowSize = 800;
 
 const float G = 0.005f;
-
 const float dt = 0.016f; //60 fps
-
 const float gravity = -0.5f; // g acceleration
-bool gravityEnabled = 0;
 float bounce = 0.9f; // how much energy to keep
 
 double accumulator = 0.0;
 double lastTime = glfwGetTime();
+
+bool paused = 0;
+bool gravityEnabled = 0;
 bool doLerp = 1;
 
 /*void CalculateFrameRate()
@@ -49,6 +49,12 @@ bool doLerp = 1;
         framesPerSecond = 0;
     }
 }*/
+
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+        paused = !paused;
+    }
+}
 
 struct RigidBody {
 
@@ -357,8 +363,12 @@ int main(void)
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window))
         {
+            /* pause */
+            glfwSetKeyCallback(window, KeyCallback);
+
+            /*camera movement*/
             camera.ProcessInput(window);
-            glm::mat4 cameraMat = camera.getCameraMatrix();
+            glm::mat4 cameraMat = camera.GetCameraMatrix();
             shader.Bind();
             shader.SetUniformMat4f("u_Cam", cameraMat);
 
@@ -370,8 +380,12 @@ int main(void)
                 accumulator += frameTime;
 
                 while (accumulator >= dt) {
-                    //UpdatePhysics(circles, dt, bounce);
-                    Orbit(circles, dt);
+
+                    if (!paused) {
+
+                        //UpdatePhysics(circles, dt, bounce);
+                        Orbit(circles, dt);
+                    }
                     accumulator -= dt;
                 }
 
@@ -379,15 +393,16 @@ int main(void)
                 float lerpFactor = accumulator / dt;
                 Lerp(circles, lerpFactor);
             }
-            else {
+            else if(!paused) {
                 //UpdatePhysics(circles, dt, bounce);
                 Orbit(circles, dt);
             }
 
+            /*update buffer*/
+            UpdateBufferData(circles, quadVertices, va, vb);
+
             /* Render here */
             renderer.Clear();
-
-            UpdateBufferData(circles, quadVertices, va, vb);
 
             //CalculateFrameRate();
 
@@ -399,7 +414,7 @@ int main(void)
             /* Poll for and process events */
             glfwPollEvents();
         }
-
+        
     }
 
     glfwTerminate();

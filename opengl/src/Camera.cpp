@@ -45,7 +45,7 @@ void Camera2D::ProcessInput(GLFWwindow* window)
     if (moved) Update();
 }
 
-glm::mat4 Camera2D::getCameraMatrix()
+glm::mat4 Camera2D::GetCameraMatrix()
 {
     return projectionMatrix * viewMatrix;
 }

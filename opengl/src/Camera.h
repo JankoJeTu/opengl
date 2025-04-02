@@ -23,8 +23,6 @@ public:
     Camera2D();
 
     void Update();
-
     void ProcessInput(GLFWwindow* window);
-
-    glm::mat4 getCameraMatrix();
+    glm::mat4 GetCameraMatrix();
 };
