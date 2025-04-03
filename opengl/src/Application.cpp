@@ -24,6 +24,8 @@
 int xWindowSize = 800;  //must be sq
 int yWindowSize = 800;
 
+float gridSpacing = 50.0f;
+
 const float G = 0.005f;
 const float dt = 0.016f; //60 fps
 const float gravity = -0.5f; // g acceleration
@@ -35,6 +37,7 @@ double lastTime = glfwGetTime();
 bool paused = 0;
 bool gravityEnabled = 0;
 bool doLerp = 1;
+bool gridEnabled = 1;
 
 /*void CalculateFrameRate()
 {
@@ -80,14 +83,15 @@ struct RigidBody {
 
                 if ((other.radius + this->radius)*(other.radius + this->radius) > distanceSq) {
 
+                    float div = 1.0f / ((other.mass + this->mass) * distanceSq);
+
                     glm::vec2 velocityOfThis = this->velocity - (2.0f * other.mass *
                         glm::dot((this->velocity - other.velocity), (this->position - other.position)) *
-                        (this->position - other.position)) / 
-                        ((this->mass + other.mass) * distanceSq);
+                        (this->position - other.position)) * div;
 
                     glm::vec2 velocityOfOther = other.velocity - (2.0f * this->mass *
                         glm::dot((other.velocity - this->velocity), (other.position - this->position)) *
-                        (other.position - this->position)) / ((other.mass + this->mass) * distanceSq);
+                        (other.position - this->position)) * div;
 
                     other.velocity = velocityOfOther;
                     return velocityOfThis;
@@ -110,8 +114,17 @@ struct RigidBody {
 
                 float force = (G * this->mass * other.mass) / distanceSq;
 
-                float dirX = dx / std::pow(distanceSq, 1.0f / 2.0f);
-                float dirY = dy / std::pow(distanceSq, 1.0f / 2.0f);
+                float dist = std::pow(distanceSq, 1.0f / 2.0f);
+
+                float dirX = dx / dist;
+                float dirY = dy / dist;
+
+                
+
+                if (sumRadii > dist) {
+
+                    other.position += glm::vec2(dx, dy);    //too far
+                }
                 
                 float ax1 = (force / this->mass) * dirX;
                 float ay1 = (force / this->mass) * dirY;
@@ -120,8 +133,6 @@ struct RigidBody {
                 
                 other.velocity.x += ax2 * dt;
                 other.velocity.y += ay2 * dt;
-
-                /*lose mass*/
 
                 glm::vec2 velOfThis(this->velocity.x + ax1 * dt, this->velocity.y + ay1 * dt);
 
@@ -350,12 +361,17 @@ int main(void)
         /*shader*/
         Shader shader("res/shaders/Basic.shader");
         shader.Bind();
-
         shader.SetUniform1f("u_Edge", 0.005f);
+        //shader.Unbind();
+
+        Shader gridShader("res/shaders/Grid.shader");
+        gridShader.Bind();
+
 
         /*unbind*/
         va.Unbind();
         shader.Unbind();
+        gridShader.Unbind();
         vb.Unbind();
 
         /*renderer*/
@@ -373,8 +389,15 @@ int main(void)
             /*camera movement*/
             camera.ProcessInput(window);
             glm::mat4 cameraMat = camera.GetCameraMatrix();
+
             shader.Bind();
             shader.SetUniformMat4f("u_Cam", cameraMat);
+            shader.Unbind();
+
+            gridShader.Bind();
+            //gridShader.SetUniformMat4f("u_Cam", cameraMat);
+            gridShader.SetUniform1f("u_Zoom", camera.zoom);
+            gridShader.Unbind();
 
             if (doLerp) {
 
@@ -409,6 +432,8 @@ int main(void)
             renderer.Clear();
 
             //CalculateFrameRate();
+            if(gridEnabled)
+                renderer.Draw(va, gridShader, 6);
 
             renderer.Draw(va, shader, circles.size() * 6);
 
